@@ -16,9 +16,5 @@ func main() {
 	fileLines := tools.Read(filePath)
 	matrix, dot := tools.ParseInputData(fileLines)
 
-	fmt.Println("Ants:", dot.NumAnts)
-	fmt.Println("Rooms:", matrix.Vertices)
-	fmt.Println("Edges:", matrix.Edges)
-
 	tools.MoveAnts(matrix, dot)
 }
