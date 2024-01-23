@@ -9,72 +9,72 @@ import (
 func MoveAnts(matrix Matrix, dot Dot) {
 	allPaths := FindAllPaths(matrix.StartRoom, matrix.EndRoom, matrix.Edges)
 	selectedPaths := DistributeAnts(SelectPaths(allPaths), dot.NumAnts)
+
+	// Initialize ants and assign them to paths.
 	ants := initializeAnts(dot.NumAnts, selectedPaths)
 	roomOccupancy := make(map[string]int)
 
-	turn := 0
+	// Enhanced debugging: Print paths and initial room occupancy
+	fmt.Println("Selected Paths and Initial Assignments:")
+	for _, path := range selectedPaths {
+		fmt.Printf("Path: %v, Ants: %v\n", path.Path, path.Ants)
+	}
+
 	for !allAntsAtEnd(ants, matrix.EndRoom) {
 		var movements []string
-		for i := range ants {
-			if ants[i].CurrentRoom == matrix.EndRoom {
-				continue // Skip ants that have reached the end
-			}
-
-			nextRoom := getNextRoom(ants[i], roomOccupancy, matrix.EndRoom)
-			if nextRoom != "" && (roomOccupancy[nextRoom] == 0 || nextRoom == matrix.EndRoom) {
-				if ants[i].CurrentRoom != matrix.StartRoom { // Leave start room occupancy unchanged
-					roomOccupancy[ants[i].CurrentRoom] = 0
-				}
-				ants[i].CurrentRoom = nextRoom
-				roomOccupancy[nextRoom] = ants[i].ID
-				ants[i].CurrentIndex++
-				movements = append(movements, fmt.Sprintf("L%d-%s", ants[i].ID, nextRoom))
+		// Reset room occupancy except for the end room
+		for room := range roomOccupancy {
+			if room != matrix.EndRoom {
+				roomOccupancy[room] = 0
 			}
 		}
-
-		if len(movements) > 0 {
-			fmt.Println(strings.Join(movements, " "))
+		for i, ant := range ants {
+			if ant.CurrentRoom == matrix.EndRoom {
+				continue // Skip ants already at the end
+			}
+			nextRoom := getNextRoom(ant, roomOccupancy, matrix.EndRoom)
+			if nextRoom != "" {
+				moveAnt(&ants[i], nextRoom, roomOccupancy)
+				movements = append(movements, fmt.Sprintf("L%d-%s", ant.ID, nextRoom))
+			}
 		}
-		turn++
+		if len(movements) == 0 && !allAntsAtEnd(ants, matrix.EndRoom) {
+			fmt.Println("Detected a deadlock situation. Review path assignments and occupancy logic.")
+			break
+		}
+		fmt.Println(strings.Join(movements, " "))
 	}
 }
 
-func getNextRoom(ant Ant, occupancy map[string]int, endRoom string) string {
-	if ant.CurrentIndex+1 < len(ant.Path) {
-		nextRoom := ant.Path[ant.CurrentIndex+1]
-		// Check occupancy only if nextRoom is not the end room
-		if nextRoom != endRoom && occupancy[nextRoom] != 0 {
-			return ""
-		}
-		return nextRoom
-	}
-	return ant.CurrentRoom
-}
-
+// Initialize ants and assign them to paths.
 func initializeAnts(numAnts int, paths []PathWithAnts) []Ant {
 	ants := make([]Ant, numAnts)
 	for i := range ants {
 		ants[i].ID = i + 1
-		// Assign paths to ants
 		for _, path := range paths {
-			if contains(path.Ants, ants[i].ID) {
-				ants[i].Path = path.Path
-				break
+			for _, antID := range path.Ants {
+				if antID == ants[i].ID {
+					ants[i].Path = path.Path
+					ants[i].CurrentRoom = path.Path[0]
+					break
+				}
 			}
 		}
 	}
 	return ants
 }
 
-func contains(s []int, e int) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
+// Move an ant to the next room and update room occupancy.
+func moveAnt(ant *Ant, nextRoom string, occupancy map[string]int) {
+	if ant.CurrentRoom != "" {
+		occupancy[ant.CurrentRoom] = 0 // Vacate current room
 	}
-	return false
+	ant.CurrentRoom = nextRoom
+	ant.CurrentIndex++
+	occupancy[nextRoom] = ant.ID // Occupy new room
 }
 
+// Determine if all ants have reached the end.
 func allAntsAtEnd(ants []Ant, endRoom string) bool {
 	for _, ant := range ants {
 		if ant.CurrentRoom != endRoom {
@@ -82,6 +82,17 @@ func allAntsAtEnd(ants []Ant, endRoom string) bool {
 		}
 	}
 	return true
+}
+
+// Select the next room for an ant to move to.
+func getNextRoom(ant Ant, occupancy map[string]int, endRoom string) string {
+	if ant.CurrentIndex < len(ant.Path)-1 {
+		nextRoom := ant.Path[ant.CurrentIndex+1]
+		if nextRoom == endRoom || occupancy[nextRoom] == 0 {
+			return nextRoom
+		}
+	}
+	return ""
 }
 func SelectPaths(allPaths [][]string) [][]string {
 	sort.Slice(allPaths, func(i, j int) bool {
