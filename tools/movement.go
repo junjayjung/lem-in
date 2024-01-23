@@ -2,87 +2,43 @@ package tools
 
 import (
 	"fmt"
-	"strings"
+	"sort"
 )
 
+type PathWithAnts struct {
+	Path []string
+	Ants []int
+}
+
 func MoveAnts(matrix Matrix, dot Dot) {
-	path := ShortestPath(matrix)
-	if len(path) == 0 {
-		fmt.Println("No path found from start to end")
-		return
+	allPaths := FindAllPaths(matrix.StartRoom, matrix.EndRoom, matrix.Edges)
+	selectedPaths := DistributeAnts(SelectPaths(allPaths), dot.NumAnts)
+	for _, path := range selectedPaths {
+		fmt.Printf("Path: %v Ants: %v\n", path.Path, path.Ants)
 	}
 
-	ants := initializeAnts(dot.NumAnts)
-	for _, ant := range ants {
-		ant.Current = matrix.StartRoom
-	}
-
-	for !allAntsAtEnd(ants, matrix.EndRoom) {
-		moveAntsAlongPath(ants, path, matrix)
-		printAntsPositions(ants, matrix)
-	}
+}
+func SelectPaths(allPaths [][]string) [][]string {
+	sort.Slice(allPaths, func(i, j int) bool {
+		return len(allPaths[i]) < len(allPaths[j])
+	})
+	return allPaths // This simplistic approach selects all paths; adjust as needed.
 }
 
-func initializeAnts(numAnts int) []Ant {
-	ants := make([]Ant, numAnts)
-	for i := range ants {
-		ants[i] = Ant{ID: i + 1}
+func DistributeAnts(paths [][]string, numAnts int) []PathWithAnts {
+	distributions := make([]PathWithAnts, len(paths))
+	for i, path := range paths {
+		distributions[i] = PathWithAnts{Path: path}
 	}
-	return ants
-}
-
-func moveAntsAlongPath(ants []Ant, path []string, matrix Matrix) {
-	for i := range ants {
-		if ants[i].Current == matrix.EndRoom {
-			continue
-		}
-
-		currentIndex := findRoomIndex(path, ants[i].Current)
-		if currentIndex < len(path)-1 {
-			nextRoom := path[currentIndex+1]
-			if !isRoomOccupied(ants, nextRoom) || nextRoom == matrix.EndRoom {
-				ants[i].Current = nextRoom
+	antID := 1
+	for antID <= numAnts {
+		for i := range distributions {
+			if antID > numAnts {
+				break
 			}
+			distributions[i].Ants = append(distributions[i].Ants, antID)
+			antID++
 		}
 	}
-}
-
-func findRoomIndex(path []string, room string) int {
-	for i, r := range path {
-		if r == room {
-			return i
-		}
-	}
-	return -1
-}
-
-func isRoomOccupied(ants []Ant, room string) bool {
-	for _, ant := range ants {
-		if ant.Current == room {
-			return true
-		}
-	}
-	return false
-}
-
-func printAntsPositions(ants []Ant, matrix Matrix) {
-	var movements []string
-	for _, ant := range ants {
-		if ant.Current != matrix.StartRoom && ant.Current != matrix.EndRoom {
-			movements = append(movements, fmt.Sprintf("L%d-%s", ant.ID, ant.Current))
-		}
-	}
-
-	if len(movements) > 0 {
-		fmt.Println(strings.Join(movements, " "))
-	}
-}
-
-func allAntsAtEnd(ants []Ant, endRoom string) bool {
-	for _, ant := range ants {
-		if ant.Current != endRoom {
-			return false
-		}
-	}
-	return true
+	return distributions
 }

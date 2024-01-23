@@ -1,59 +1,37 @@
 package tools
 
-import "math"
+import (
+	"sort"
+)
 
-func Dijkstra(matrix Matrix) map[string]int {
-	distances := make(map[string]int)
-	visited := make(map[string]bool)
-
-	for _, v := range matrix.Vertices {
-		distances[v] = math.MaxInt32
+// findPathsDFS explores all possible paths from 'current' to 'endRoom' using DFS.
+func findPathsDFS(current string, endRoom string, links map[string][]string, visited map[string]bool, path []string, allPaths *[][]string) {
+	if visited[current] {
+		return
 	}
-
-	distances[matrix.StartRoom] = 0
-
-	for i := 0; i < len(matrix.Vertices)-1; i++ {
-		u := minDistance(distances, visited)
-		visited[u] = true
-
-		for _, v := range matrix.Edges[u] {
-			if !visited[v] && distances[u]+1 < distances[v] {
-				distances[v] = distances[u] + 1
-			}
-		}
+	if current == endRoom {
+		// Make a copy of the path to avoid slice reference issues.
+		pathCopy := make([]string, len(path))
+		copy(pathCopy, path)
+		*allPaths = append(*allPaths, pathCopy)
+		return
 	}
-
-	return distances
+	visited[current] = true
+	for _, next := range links[current] {
+		findPathsDFS(next, endRoom, links, visited, append(path, next), allPaths)
+	}
+	visited[current] = false
 }
 
-func minDistance(distances map[string]int, visited map[string]bool) string {
-	min := math.MaxInt32
-	var minNode string
+// FindAllPaths initializes the DFS search and sorts the resulting paths by length.
+func FindAllPaths(startRoom string, endRoom string, links map[string][]string) [][]string {
+	allPaths := make([][]string, 0)
+	findPathsDFS(startRoom, endRoom, links, make(map[string]bool), []string{startRoom}, &allPaths)
 
-	for k, v := range distances {
-		if !visited[k] && v <= min {
-			min = v
-			minNode = k
-		}
-	}
+	// Sort paths by length.
+	sort.Slice(allPaths, func(i, j int) bool {
+		return len(allPaths[i]) < len(allPaths[j])
+	})
 
-	return minNode
-}
-
-func ShortestPath(matrix Matrix) []string {
-	distances := Dijkstra(matrix)
-	path := []string{matrix.EndRoom}
-	currentRoom := matrix.EndRoom
-
-	for currentRoom != matrix.StartRoom {
-		for _, room := range matrix.Edges[currentRoom] {
-			if distances[room] == distances[currentRoom]-1 {
-				path = append([]string{room}, path...)
-				currentRoom = room
-				break
-			}
-		}
-	}
-
-	return path
+	return allPaths
 }
