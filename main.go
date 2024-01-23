@@ -14,11 +14,15 @@ func main() {
 	filelines := tools.Read(os.Args[1])
 	for i := range filelines {
 		fmt.Println(filelines[i])
+		//for more readability
+		if i == len(filelines)-1 {
+			fmt.Println()
+		}
 	}
 	matrix, dot := tools.ParseInputData(filelines)
 	allPaths := tools.FindAllPaths(matrix.StartRoom, matrix.EndRoom, matrix.Edges)
 	if len(allPaths) == 0 {
-		fmt.Println("ERROR: invalid data format")
+		tools.ExitWithError("Error: invalid data format\n", nil)
 		return
 	}
 	tools.MoveAnts(matrix, dot)

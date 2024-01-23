@@ -15,11 +15,19 @@ type Matrix struct {
 	Vertices  []string
 }
 type Ant struct {
-	ID      int
-	Current string
+	ID           int
+	CurrentRoom  string
+	Path         []string
+	CurrentIndex int
 }
+
 type Dot struct {
 	NumAnts int
+}
+
+type PathWithAnts struct {
+	Path []string
+	Ants []int
 }
 
 func Read(filePath string) []string {
@@ -46,7 +54,7 @@ func ParseInputData(data []string) (Matrix, Dot) {
 	matrix.Edges = make(map[string][]string)
 	numAnts, err := strconv.Atoi(data[0])
 	if err != nil {
-		exitWithError("Error: Failed to convert the number of ants to an integer", err)
+		ExitWithError("Error: Failed to convert the number of ants to an integer", err)
 	}
 	validateNumAnts(numAnts)
 	dot.NumAnts = numAnts
@@ -64,13 +72,13 @@ func ParseInputData(data []string) (Matrix, Dot) {
 	}
 	return matrix, dot
 }
-func exitWithError(message string, err error) {
+func ExitWithError(message string, err error) {
 	fmt.Printf("%s\n", message)
 	os.Exit(1)
 }
 func validateNumAnts(numAnts int) {
 	if numAnts < 1 {
-		exitWithError("Error: No ants specified\n", nil)
+		ExitWithError("Error: No ants specified\n", nil)
 	}
 }
 func extractVertex(data string) string {
@@ -81,7 +89,7 @@ func addConnection(matrix *Matrix, connection string) {
 	endpoints := strings.Split(connection, "-")
 	from, to := endpoints[0], endpoints[1]
 	if from == "" || to == "" {
-		exitWithError("Error: Invalid connection format", nil)
+		ExitWithError("Error: Invalid connection format", nil)
 	}
 	matrix.Edges[from] = append(matrix.Edges[from], to)
 	matrix.Edges[to] = append(matrix.Edges[to], from)
@@ -90,7 +98,7 @@ func addRoom(matrix *Matrix, roomData string) {
 	fields := strings.Fields(roomData)
 	roomName := fields[0]
 	if strings.HasPrefix(roomName, "L") || strings.HasPrefix(roomName, "#") {
-		exitWithError("Error: Invalid room name", nil)
+		ExitWithError("Error: Invalid room name", nil)
 	}
 	matrix.Vertices = append(matrix.Vertices, roomName)
 }
