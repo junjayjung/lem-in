@@ -10,6 +10,7 @@ type PathWithAnts struct {
 	Ants []int
 }
 
+// TODO: print out ants movement. right now: whole antfarm and all possible paths.
 func MoveAnts(matrix Matrix, dot Dot) {
 	allPaths := FindAllPaths(matrix.StartRoom, matrix.EndRoom, matrix.Edges)
 	selectedPaths := DistributeAnts(SelectPaths(allPaths), dot.NumAnts)
@@ -22,7 +23,7 @@ func SelectPaths(allPaths [][]string) [][]string {
 	sort.Slice(allPaths, func(i, j int) bool {
 		return len(allPaths[i]) < len(allPaths[j])
 	})
-	return allPaths // This simplistic approach selects all paths; adjust as needed.
+	return allPaths
 }
 
 func DistributeAnts(paths [][]string, numAnts int) []PathWithAnts {

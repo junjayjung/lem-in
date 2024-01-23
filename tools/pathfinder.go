@@ -10,7 +10,6 @@ func findPathsDFS(current string, endRoom string, links map[string][]string, vis
 		return
 	}
 	if current == endRoom {
-		// Make a copy of the path to avoid slice reference issues.
 		pathCopy := make([]string, len(path))
 		copy(pathCopy, path)
 		*allPaths = append(*allPaths, pathCopy)
