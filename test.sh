@@ -1,70 +1,70 @@
 #!/bin/sh
 echo "---------------------"
-echo "TEST : example00"
-go run . example00.txt
+echo "TEST : examples/example00"
+go run . examples/example00.txt
 echo "Press ENTER to run next test..."
 
 read -n 1 -s
 
 echo "---------------------"
-echo "TEST : example01"
-go run . example01.txt
+echo "TEST : examples/example01"
+go run . examples/example01.txt
 echo "Press ENTER to run next test..."
 
 read -n 1 -s
 
 echo "---------------------"
-echo "TEST : example02"
-go run . example02.txt
+echo "TEST : examples/example02"
+go run . examples/example02.txt
 echo "Press ENTER to run next test..."
 
 read -n 1 -s
 
 echo "---------------------"
-echo "TEST : example03"
-go run . example03.txt
+echo "TEST : examples/example03"
+go run . examples/example03.txt
 echo "Press ENTER to run next test..."
 
 read -n 1 -s
 
 echo "---------------------"
-echo "TEST : example04"
-go run . example04.txt
+echo "TEST : examples/example04"
+go run . examples/example04.txt
 echo "Press ENTER to run next test..."
 
 read -n 1 -s
 
 echo "---------------------"
-echo "TEST : example05"
-go run . example05.txt
+echo "TEST : examples/example05"
+go run . examples/example05.txt
 echo "Press ENTER to run next test..."
 
 read -n 1 -s
 
 echo "---------------------"
-echo "TEST : example06"
-go run . example06.txt
+echo "TEST : examples/example06"
+go run . examples/example06.txt
 echo "Press ENTER to run next test..."
 
 read -n 1 -s
 
 echo "---------------------"
-echo "## RUNNING TEST WITH: example07 ##"
-go run . example07.txt
+echo "## RUNNING TEST WITH: examples/example07 ##"
+go run . examples/example07.txt
 echo "Press ENTER to run next test..."
 
 read -n 1 -s
 
 echo "---------------------"
-echo "TEST : badexample00"
-go run . badexample00.txt
+echo "TEST : badexamples/example00"
+go run . badexamples/example00.txt
 echo "Press ENTER to run next test..."
 
 read -n 1 -s
 
 echo "---------------------"
-echo "TEST : badexample01"
-go run . badexample01.txt
+echo "TEST : badexamples/example01"
+go run . badexamples/example01.txt
 echo "Press ENTER to run next test..."
 
 read -n 1 -s
