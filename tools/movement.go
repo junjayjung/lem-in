@@ -52,25 +52,32 @@ func initializeAnts(numAnts int, paths []PathWithAnts) []Ant {
 	for i := range ants {
 		ants[i].ID = i + 1
 		for _, path := range paths {
-			for _, antID := range path.Ants {
-				if antID == ants[i].ID {
-					ants[i].Path = path.Path
-					ants[i].CurrentRoom = path.Path[0]
-					break
-				}
+			if containsAntID(path.Ants, ants[i].ID) {
+				ants[i].Path = path.Path
+				ants[i].CurrentRoom = path.Path[0]
+				break
 			}
 		}
 	}
 	return ants
 }
 
+func containsAntID(antIDs []int, id int) bool {
+	for _, antID := range antIDs {
+		if antID == id {
+			return true
+		}
+	}
+	return false
+}
+
+// Move an ant to the next room and update room occupancy.
 // Move an ant to the next room and update room occupancy.
 func moveAnt(ant *Ant, nextRoom string, occupancy map[string]int) {
 	if ant.CurrentRoom != "" {
 		occupancy[ant.CurrentRoom] = 0 // Vacate current room
 	}
-	ant.CurrentRoom = nextRoom
-	ant.CurrentIndex++
+	ant.CurrentRoom, ant.CurrentIndex = nextRoom, ant.CurrentIndex+1
 	occupancy[nextRoom] = ant.ID // Occupy new room
 }
 
@@ -85,12 +92,14 @@ func allAntsAtEnd(ants []Ant, endRoom string) bool {
 }
 
 // Select the next room for an ant to move to.
+// Select the next room for an ant to move to.
 func getNextRoom(ant Ant, occupancy map[string]int, endRoom string) string {
-	if ant.CurrentIndex < len(ant.Path)-1 {
-		nextRoom := ant.Path[ant.CurrentIndex+1]
-		if nextRoom == endRoom || occupancy[nextRoom] == 0 {
-			return nextRoom
-		}
+	if ant.CurrentIndex >= len(ant.Path)-1 {
+		return ""
+	}
+	nextRoom := ant.Path[ant.CurrentIndex+1]
+	if nextRoom == endRoom || occupancy[nextRoom] == 0 {
+		return nextRoom
 	}
 	return ""
 }

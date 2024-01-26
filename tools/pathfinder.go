@@ -4,30 +4,28 @@ import (
 	"sort"
 )
 
-// findPathsDFS explores all possible paths from 'current' to 'endRoom' using DFS.
-func findPathsDFS(current string, endRoom string, links map[string][]string, visited map[string]bool, path []string, allPaths *[][]string) {
-	if visited[current] {
+// findPathsDFS explores all possible paths from 'start' to 'end' using DFS.
+func findPathsDFS(start string, end string, links map[string][]string, visited map[string]bool, path []string, allPaths *[][]string) {
+	if visited[start] || start == end {
+		if start == end {
+			*allPaths = append(*allPaths, append([]string(nil), path...))
+		}
 		return
 	}
-	if current == endRoom {
-		pathCopy := make([]string, len(path))
-		copy(pathCopy, path)
-		*allPaths = append(*allPaths, pathCopy)
-		return
+	visited[start] = true
+	defer func() { visited[start] = false }()
+	for _, next := range links[start] {
+		findPathsDFS(next, end, links, visited, append(path, next), allPaths)
 	}
-	visited[current] = true
-	for _, next := range links[current] {
-		findPathsDFS(next, endRoom, links, visited, append(path, next), allPaths)
-	}
-	visited[current] = false
 }
 
-// FindAllPaths initializes the DFS search and sorts the resulting paths by length.
-func FindAllPaths(startRoom string, endRoom string, links map[string][]string) [][]string {
+// FindAllPaths initializes DFS search and sorts resulting paths by length.
+func FindAllPaths(startRoom, endRoom string, links map[string][]string) [][]string {
 	allPaths := make([][]string, 0)
-	findPathsDFS(startRoom, endRoom, links, make(map[string]bool), []string{startRoom}, &allPaths)
+	visited := make(map[string]bool)
+	currentPath := []string{startRoom}
+	findPathsDFS(startRoom, endRoom, links, visited, currentPath, &allPaths)
 
-	// Sort paths by length.
 	sort.Slice(allPaths, func(i, j int) bool {
 		return len(allPaths[i]) < len(allPaths[j])
 	})
