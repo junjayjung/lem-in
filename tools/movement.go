@@ -5,6 +5,7 @@ import (
 	"sort"
 )
 
+// The Move function simulates ant movement through rooms, updating their locations and printing their movements until they reach the end room.
 func Move(numberOfAnts int, startRoom string, endRoom string, paths [][]string) {
 	antLocations := make(map[int]string, numberOfAnts)
 	for i := 1; i <= numberOfAnts; i++ {
@@ -36,6 +37,8 @@ func Move(numberOfAnts int, startRoom string, endRoom string, paths [][]string) 
 	}
 }
 
+// The NextHeya function finds available next rooms based on certain conditions and returns a list of them. It also updates the directLinkUsed pointer if a specific condition is met.
+// Heya (部屋；へや) means 'room(s)'　in Japanese.
 func NextHeya(antLoc string, directLinkUsed *bool, startRoom string, endRoom string, antLocations map[int]string, paths [][]string) []string {
 	var nextRooms []string
 	for _, path := range paths {

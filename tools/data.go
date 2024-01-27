@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// The Data function reads and processes input from a file, then returns the number of ants, start and end room names, and a map of room links. It also handles error cases.
 func Data() (int, string, string, map[string][]string) {
 	var numAnts int
 	var start, end string

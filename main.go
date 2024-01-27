@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// This program (funcion) checks command-line arguments, processes data, computes paths, and moves ants based on the input. It also handles errors if the number of arguments is not 2.
 func main() {
 	args := os.Args
 	if len(args) != 2 {
