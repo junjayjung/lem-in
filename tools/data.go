@@ -1,104 +1,47 @@
-package tools
+package lem
 
 import (
-	"bufio"
-	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
 )
 
-type Matrix struct {
-	StartRoom string
-	EndRoom   string
-	Edges     map[string][]string
-	Vertices  []string
-}
-type Ant struct {
-	ID           int
-	CurrentRoom  string
-	Path         []string
-	CurrentIndex int
-}
+func Data() (int, string, string, map[string][]string) {
+	var numAnts int
+	var start, end string
+	links := make(map[string][]string)
 
-type Dot struct {
-	NumAnts int
-}
-
-type PathWithAnts struct {
-	Path []string
-	Ants []int
-}
-
-func Read(filePath string) []string {
-	file, err := os.Open(filePath)
+	rawText, err := os.ReadFile(os.Args[1])
 	if err != nil {
-		fmt.Printf("Error: Unable to open the file - %s\n", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
-	defer file.Close()
-	var fileLines []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		fileLines = append(fileLines, scanner.Text())
+
+	inputLines := strings.Split(string(rawText), "\n")
+	numAnts, err = strconv.Atoi(inputLines[0])
+	if err != nil || numAnts <= 0 {
+		log.Fatal("ERROR: Invalid number of ants.")
 	}
-	if len(fileLines) == 0 {
-		fmt.Println("Error: The file is empty.")
-		os.Exit(1)
-	}
-	return fileLines
-}
-func ParseInputData(data []string) (Matrix, Dot) {
-	var matrix Matrix
-	var dot Dot
-	matrix.Edges = make(map[string][]string)
-	numAnts, err := strconv.Atoi(data[0])
-	if err != nil {
-		ExitWithError("Error: Failed to convert the number of ants to an integer", err)
-	}
-	validateNumAnts(numAnts)
-	dot.NumAnts = numAnts
-	for i := 1; i < len(data); i++ {
-		line := data[i]
-		if strings.HasPrefix(line, "##start") {
-			matrix.StartRoom = extractVertex(data[i+1])
-		} else if strings.HasPrefix(line, "##end") {
-			matrix.EndRoom = extractVertex(data[i+1])
+
+	for index, line := range inputLines {
+		if line == "##start" || line == "##end" {
+			roomInfo := strings.Split(inputLines[index+1], " ")
+			if line == "##start" {
+				start = roomInfo[0]
+			} else {
+				end = roomInfo[0]
+			}
+		} else if parts := strings.Fields(line); len(parts) > 1 {
+			links[parts[0]] = []string{}
 		} else if strings.Contains(line, "-") {
-			addConnection(&matrix, line)
-		} else if strings.Contains(line, " ") {
-			addRoom(&matrix, line)
+			linkInfo := strings.Split(line, "-")
+			links[linkInfo[0]] = append(links[linkInfo[0]], linkInfo[1])
+			links[linkInfo[1]] = append(links[linkInfo[1]], linkInfo[0])
 		}
 	}
-	return matrix, dot
-}
-func ExitWithError(message string, err error) {
-	fmt.Printf("%s\n", message)
-	os.Exit(1)
-}
-func validateNumAnts(numAnts int) {
-	if numAnts < 1 {
-		ExitWithError("Error: No ants specified\n", nil)
+
+	if start == "" || end == "" || len(links[start]) == 0 || len(links[end]) == 0 {
+		log.Fatal("ERROR: invalid data format.")
 	}
-}
-func extractVertex(data string) string {
-	fields := strings.Fields(data)
-	return fields[0]
-}
-func addConnection(matrix *Matrix, connection string) {
-	endpoints := strings.Split(connection, "-")
-	from, to := endpoints[0], endpoints[1]
-	if from == "" || to == "" {
-		ExitWithError("Error: Invalid connection format", nil)
-	}
-	matrix.Edges[from] = append(matrix.Edges[from], to)
-	matrix.Edges[to] = append(matrix.Edges[to], from)
-}
-func addRoom(matrix *Matrix, roomData string) {
-	fields := strings.Fields(roomData)
-	roomName := fields[0]
-	if strings.HasPrefix(roomName, "L") || strings.HasPrefix(roomName, "#") {
-		ExitWithError("Error: Invalid room name", nil)
-	}
-	matrix.Vertices = append(matrix.Vertices, roomName)
+	return numAnts, start, end, links
 }

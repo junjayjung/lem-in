@@ -1,34 +1,42 @@
-package tools
+package lem
 
 import (
 	"sort"
 )
 
-// findPathsDFS explores all possible paths from 'start' to 'end' using DFS.
-func findPathsDFS(start string, end string, links map[string][]string, visited map[string]bool, path []string, allPaths *[][]string) {
-	if visited[start] || start == end {
-		if start == end {
-			*allPaths = append(*allPaths, append([]string(nil), path...))
-		}
-		return
+func Michi(start string, end string, links map[string][]string) [][]string {
+	var paths [][]string
+	var currentPath []string
+	visited := make(map[string]bool)
+	calculateRoutes(&currentPath, start, end, links, visited, &paths)
+	Nagasa(paths)
+	if len(paths) > 10 {
+		return paths[:10]
 	}
-	visited[start] = true
-	defer func() { visited[start] = false }()
-	for _, next := range links[start] {
-		findPathsDFS(next, end, links, visited, append(path, next), allPaths)
+	return paths
+}
+
+func calculateRoutes(path *[]string, currentRoom string, endRoom string, links map[string][]string, visited map[string]bool, paths *[][]string) {
+	*path = append(*path, currentRoom)
+	visited[currentRoom] = true
+	defer func() {
+		*path = (*path)[:len(*path)-1]
+		visited[currentRoom] = false
+	}()
+
+	if currentRoom == endRoom {
+		newPath := make([]string, len(*path))
+		copy(newPath, *path)
+		*paths = append(*paths, newPath)
+	} else {
+		for _, nextRoom := range links[currentRoom] {
+			if !visited[nextRoom] {
+				calculateRoutes(path, nextRoom, endRoom, links, visited, paths)
+			}
+		}
 	}
 }
 
-// FindAllPaths initializes DFS search and sorts resulting paths by length.
-func FindAllPaths(startRoom, endRoom string, links map[string][]string) [][]string {
-	allPaths := make([][]string, 0)
-	visited := make(map[string]bool)
-	currentPath := []string{startRoom}
-	findPathsDFS(startRoom, endRoom, links, visited, currentPath, &allPaths)
-
-	sort.Slice(allPaths, func(i, j int) bool {
-		return len(allPaths[i]) < len(allPaths[j])
-	})
-
-	return allPaths
+func Nagasa(paths [][]string) {
+	sort.Slice(paths, func(i, j int) bool { return len(paths[i]) < len(paths[j]) })
 }

@@ -1,4 +1,4 @@
 
-module lem-in
+module lem
 
 go 1.21.1

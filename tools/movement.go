@@ -1,129 +1,75 @@
-package tools
+package lem
 
 import (
 	"fmt"
 	"sort"
-	"strings"
 )
 
-func MoveAnts(matrix Matrix, dot Dot) {
-	allPaths := FindAllPaths(matrix.StartRoom, matrix.EndRoom, matrix.Edges)
-	selectedPaths := DistributeAnts(SelectPaths(allPaths), dot.NumAnts)
-
-	// Initialize ants and assign them to paths.
-	ants := initializeAnts(dot.NumAnts, selectedPaths)
-	roomOccupancy := make(map[string]int)
-
-	// Enhanced debugging: Print paths and initial room occupancy
-	fmt.Println("Selected Paths and Initial Assignments:")
-	for _, path := range selectedPaths {
-		fmt.Printf("Path: %v, Ants: %v\n", path.Path, path.Ants)
+func Move(numberOfAnts int, startRoom string, endRoom string, paths [][]string) {
+	antLocations := make(map[int]string, numberOfAnts)
+	for i := 1; i <= numberOfAnts; i++ {
+		antLocations[i] = startRoom
 	}
 
-	for !allAntsAtEnd(ants, matrix.EndRoom) {
-		var movements []string
-		// Reset room occupancy except for the end room
-		for room := range roomOccupancy {
-			if room != matrix.EndRoom {
-				roomOccupancy[room] = 0
+	for len(antLocations) > 0 {
+		var ants []int
+		for ant := range antLocations {
+			ants = append(ants, ant)
+		}
+		sort.Ints(ants)
+
+		var directLinkUsed bool
+		for _, ant := range ants {
+			if antLocations[ant] == endRoom {
+				delete(antLocations, ant)
+			} else {
+				roomsAvailable := NextHeya(antLocations[ant], &directLinkUsed, startRoom, endRoom, antLocations, paths)
+				if len(roomsAvailable) > 0 {
+					antLocations[ant] = roomsAvailable[0]
+					fmt.Printf("L%d-%s ", ant, roomsAvailable[0])
+				}
 			}
 		}
-		for i, ant := range ants {
-			if ant.CurrentRoom == matrix.EndRoom {
-				continue // Skip ants already at the end
-			}
-			nextRoom := getNextRoom(ant, roomOccupancy, matrix.EndRoom)
-			if nextRoom != "" {
-				moveAnt(&ants[i], nextRoom, roomOccupancy)
-				movements = append(movements, fmt.Sprintf("L%d-%s", ant.ID, nextRoom))
-			}
+		if len(antLocations) != 0 {
+			fmt.Println()
 		}
-		if len(movements) == 0 && !allAntsAtEnd(ants, matrix.EndRoom) {
-			fmt.Println("Detected a deadlock situation. Review path assignments and occupancy logic.")
-			break
-		}
-		fmt.Println(strings.Join(movements, " "))
 	}
 }
 
-// Initialize ants and assign them to paths.
-func initializeAnts(numAnts int, paths []PathWithAnts) []Ant {
-	ants := make([]Ant, numAnts)
-	for i := range ants {
-		ants[i].ID = i + 1
-		for _, path := range paths {
-			if containsAntID(path.Ants, ants[i].ID) {
-				ants[i].Path = path.Path
-				ants[i].CurrentRoom = path.Path[0]
-				break
+func NextHeya(antLoc string, directLinkUsed *bool, startRoom string, endRoom string, antLocations map[int]string, paths [][]string) []string {
+	var nextRooms []string
+	for _, path := range paths {
+		for index, content := range path {
+			if content == antLoc {
+				nextRooms = append(nextRooms, path[index+1])
 			}
 		}
 	}
-	return ants
-}
 
-func containsAntID(antIDs []int, id int) bool {
-	for _, antID := range antIDs {
-		if antID == id {
-			return true
-		}
+	var roomsAvailable []string
+	if len(antLocations) < 5 && antLoc == startRoom && *directLinkUsed {
+		return roomsAvailable
 	}
-	return false
-}
 
-// Move an ant to the next room and update room occupancy.
-// Move an ant to the next room and update room occupancy.
-func moveAnt(ant *Ant, nextRoom string, occupancy map[string]int) {
-	if ant.CurrentRoom != "" {
-		occupancy[ant.CurrentRoom] = 0 // Vacate current room
-	}
-	ant.CurrentRoom, ant.CurrentIndex = nextRoom, ant.CurrentIndex+1
-	occupancy[nextRoom] = ant.ID // Occupy new room
-}
-
-// Determine if all ants have reached the end.
-func allAntsAtEnd(ants []Ant, endRoom string) bool {
-	for _, ant := range ants {
-		if ant.CurrentRoom != endRoom {
-			return false
-		}
-	}
-	return true
-}
-
-// Select the next room for an ant to move to.
-// Select the next room for an ant to move to.
-func getNextRoom(ant Ant, occupancy map[string]int, endRoom string) string {
-	if ant.CurrentIndex >= len(ant.Path)-1 {
-		return ""
-	}
-	nextRoom := ant.Path[ant.CurrentIndex+1]
-	if nextRoom == endRoom || occupancy[nextRoom] == 0 {
-		return nextRoom
-	}
-	return ""
-}
-func SelectPaths(allPaths [][]string) [][]string {
-	sort.Slice(allPaths, func(i, j int) bool {
-		return len(allPaths[i]) < len(allPaths[j])
-	})
-	return allPaths
-}
-
-func DistributeAnts(paths [][]string, numAnts int) []PathWithAnts {
-	distributions := make([]PathWithAnts, len(paths))
-	for i, path := range paths {
-		distributions[i] = PathWithAnts{Path: path}
-	}
-	antID := 1
-	for antID <= numAnts {
-		for i := range distributions {
-			if antID > numAnts {
-				break
+	for _, room := range nextRooms {
+		var occupied bool
+		if room == endRoom && !*directLinkUsed {
+			roomsAvailable = append(roomsAvailable, room)
+			if antLoc == startRoom {
+				*directLinkUsed = true
 			}
-			distributions[i].Ants = append(distributions[i].Ants, antID)
-			antID++
+		} else {
+			for _, loc := range antLocations {
+				if room == loc {
+					occupied = true
+					break
+				}
+			}
+		}
+		if !occupied {
+			roomsAvailable = append(roomsAvailable, room)
 		}
 	}
-	return distributions
+
+	return roomsAvailable
 }

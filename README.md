@@ -27,4 +27,6 @@ To run the application, follow these steps:
   - Gitea: [link](https://01.kood.tech/git/jlim)
 
 ## Instruction
-  - Please refer to the [public repo](https://github.com/01-edu/public/tree/master/subjects/lem-in/audit) for the review.
+  - Please refer to the [public repo](https://github.com/01-edu/public/tree/master/subjects/lem-in/audit) for the review. 
+
+<br><br><span style="font-size:3em;"><strong>Thank you for your time and expertise!</strong></span>
